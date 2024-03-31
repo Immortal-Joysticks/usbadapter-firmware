@@ -1,8 +1,8 @@
 /*
 	Immortal Joysticks USB adapter
 
-	Written by Peter Mulholland
-	Licensed under GPL v2 or later - see license.txt
+	Written by Peter Mulholland and Andrew Hutchings
+	Licensed under GPL v2 or later - see LICENSE
 */
 
 #include <stdint.h>
@@ -37,8 +37,9 @@ PROGMEM const char usbHidReportDescriptor[USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH] 
 			0x05, 0x01,		// USAGE_PAGE (Generic Desktop)
 			0x09, 0x30,		//     USAGE (X)
 			0x09, 0x31,		//     USAGE (Y)
-			0x15, 0x81,		//   LOGICAL_MINIMUM (-127)
-			0x25, 0x7f,		//   LOGICAL_MAXIMUM (127)
+			0x15, 0x00,		//   LOGICAL_MINIMUM (0)
+			0x26, 0xff,		//   LOGICAL_MAXIMUM (255)
+			0x00,
 			0x75, 0x08,		//   REPORT_SIZE (8)
 			0x95, 0x02,		//   REPORT_COUNT (2)
 			0x81, 0x02,		//   INPUT (Data,Var,Abs)
@@ -116,17 +117,17 @@ void readPort(struct hidReport *r)
 #if defined(TYPE_ATTINYx4)
 	uint8_t pins = PINA;
 
-	if      (!(pins & (1<<PINA4)))	r->xpos = 0x81;				// left
-	else if (!(pins & (1<<PINA3)))	r->xpos = 0x7F;			// right
-	else	r->xpos = 0;
+	if      (!(pins & (1<<PINA4)))	r->xpos = 0x00;				// left
+	else if (!(pins & (1<<PINA3)))	r->xpos = 0xff;			// right
+	else	r->xpos = 7f;
 
-	if      (!(pins & (1<<PINA6)))	r->ypos = 0x81;				// up
-	else if (!(pins & (1<<PINA5)))	r->ypos = 0x7F;			// down
-	else	r->ypos = 0;
+	if      (!(pins & (1<<PINA6)))	r->ypos = 0x00;				// up
+	else if (!(pins & (1<<PINA5)))	r->ypos = 0xff;			// down
+	else	r->ypos = 7f;
 
 	r->buttons = 0;
-	if (!(pins & (1<<PINA7)))	r->buttons |= (1<<0);			// FIRE1
-	if (!(pins & (1<<PINA2)))	r->buttons |= (1<<1);			// FIRE2
+	if (!(pins & (1<<PINA7)))	r->buttons |= (1<<1);			// FIRE1
+	if (!(pins & (1<<PINA2)))	r->buttons |= (1<<0);			// FIRE2
 
 	if (!(PINB & (1<<PINB2)))	r->buttons |= (1<<7);			// START
 
@@ -134,17 +135,17 @@ void readPort(struct hidReport *r)
 	uint8_t pb = PINB;
 	uint8_t pd = PIND;
 
-	if      (!(pb & (1<<PINB0)))	r->xpos = 0x81;				// left
-	else if (!(pb & (1<<PINB1)))	r->xpos = 0x7F;				// right
-	else	r->xpos = 0;
+	if      (!(pb & (1<<PINB0)))	r->xpos = 0x00;				// left
+	else if (!(pb & (1<<PINB1)))	r->xpos = 0xff;				// right
+	else	r->xpos = 0x7f;
 
-	if      (!(pd & (1<<PIND5)))	r->ypos = 0x81;				// up
-	else if (!(pd & (1<<PIND7)))	r->ypos = 0x7F;				// down
-	else	r->ypos = 0;
+	if      (!(pd & (1<<PIND5)))	r->ypos = 0x00;				// up
+	else if (!(pd & (1<<PIND7)))	r->ypos = 0xff;				// down
+	else	r->ypos = 0x7f;
 
 	r->buttons = 0;
-	if (!(pd & (1<<PIND6)))	r->buttons |= (1<<0);			// FIRE1
-	if (!(pb & (1<<PINB2)))	r->buttons |= (1<<1);			// FIRE2
+	if (!(pd & (1<<PIND6)))	r->buttons |= (1<<1);			// FIRE1
+	if (!(pb & (1<<PINB2)))	r->buttons |= (1<<0);			// FIRE2
 	if (!(pd & (1<<PIND4)))	r->buttons |= (1<<7);			// START
 #else
 	#error Unknown AVR type !
@@ -153,6 +154,7 @@ void readPort(struct hidReport *r)
 
 int main(void)
 {
+	int i = 0;
 	// Don't use the watchdog timer
 	wdt_disable();
 
@@ -180,10 +182,15 @@ int main(void)
 		struct hidReport newRept;
 		readPort(&newRept);
 
+		// Every so often send the current position anyway, this helps with the
+		// fact that we are 0, 0 on startup.
+		i++;
+
 		// Send the new values out if they've changed
-		if ((rept.xpos != newRept.xpos) || (rept.ypos != newRept.ypos) || (rept.buttons != newRept.buttons))
+		if ((rept.xpos != newRept.xpos) || (rept.ypos != newRept.ypos) || (rept.buttons != newRept.buttons) || i >= 255)
 		{
 			rept = newRept;
+			i = 0;
 			usbSetInterrupt((unsigned char *) &rept, sizeof(struct hidReport));
 		}
 	}

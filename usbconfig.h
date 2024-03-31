@@ -26,13 +26,16 @@
 	// PCB using ATmega48PA, breadboard using ATmega328P
 
 	#define USB_CFG_IOPORTNAME		D
-	#define USB_CFG_DMINUS_BIT		2
-	#define USB_CFG_DPLUS_BIT		3
+	#define USB_CFG_DMINUS_BIT		3
+	#define USB_CFG_DPLUS_BIT		2
 
+/*
+ * This bit is not needed if Plus is pin 2.
 	#define USB_INTR_CFG_SET		((1 << ISC10) | (1 << ISC11))
 	#define USB_INTR_ENABLE_BIT		INT1
 	#define USB_INTR_PENDING_BIT	INTF1
 	#define USB_INTR_VECTOR			INT1_vect
+*/
 #else
 	#error Unknown AVR type !
 #endif
@@ -63,8 +66,10 @@
 
 /* -------------------------- Device Description --------------------------- */
 
-#define  USB_CFG_VENDOR_ID					0xc0, 0x16			// VID = voti.nl
-#define  USB_CFG_DEVICE_ID					0xdc, 0x27			// PID = HID gamepad
+// Padix / Rockfire appears to be defunct as of mid-2023, this entry is
+// compatible with the SDL2 https://github.com/mdqinc/SDL_GameControllerDB/
+#define  USB_CFG_VENDOR_ID					0x83, 0x05			// VID = voti.nl
+#define  USB_CFG_DEVICE_ID					0x60, 0x20			// PID = HID gamepad
 
 #define USB_CFG_VENDOR_NAME					'I', 'm', 'm', 'o', 'r', 't', 'a', 'l', ' ', 'J', 'o', 'y', 's', 't', 'i', 'c', 'k', 's'
 #define USB_CFG_VENDOR_NAME_LEN				18
@@ -83,7 +88,7 @@
 #define USB_CFG_INTERFACE_SUBCLASS			0
 #define USB_CFG_INTERFACE_PROTOCOL			0
 
-#define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH	42				// should match usbHidReportDescriptor in main.c
+#define USB_CFG_HID_REPORT_DESCRIPTOR_LENGTH	43				// should match usbHidReportDescriptor in main.c
 
 #define USB_CFG_DESCR_PROPS_DEVICE                  0
 #define USB_CFG_DESCR_PROPS_CONFIGURATION           0
