@@ -1,8 +1,8 @@
 # The MCU model, see https://www.nongnu.org/avr-libc/user-manual/using_tools.html for list
-MCU=atmega328p
+MCU=attiny24
 
 # Set to TYPE_ATMEGA48 or TYPE_ATTINYx4
-TYPE=TYPE_ATMEGA48
+TYPE=TYPE_ATTINYx4
 
 # Cable type for avrdude
 CABLE=arduino
@@ -11,7 +11,7 @@ CABLE=arduino
 AVRDUDE_EXTRA=-P /dev/ttyACM0
 
 # Clock speed used (after divider), mostly for delay functions
-CLK=16000000UL
+CLK=12000000UL
 # Name of project output file
 PROJ=usbadapter
 # List of source files
