@@ -11,24 +11,17 @@ CABLE=arduino
 AVRDUDE_EXTRA=-P /dev/ttyACM0
 
 # Clock speed used (after divider), mostly for delay functions
-CLK=16000000
+CLK=16000000UL
 # Name of project output file
 PROJ=usbadapter
 # List of source files
 SOURCES=main.c usbdrv/usbdrv.c usbdrv/usbdrvasm.S usbdrv/oddebug.c
 
-# List of object files generated from source files
-OBJ=$(SOURCES:.c=.o)
-
 all: $(PROJ).hex
 
-# Generated object files
-.c.o:
-	avr-gcc -w -Os -DF_CPU=$(CLK) -D$(TYPE)=1 -mmcu=$(MCU) -I. -Iusbdrv -c -o $@ $<
-
 # Generate executable
-$(PROJ).elf: $(OBJ)
-	avr-gcc -w -mmcu=$(MCU) $(OBJ) -DF_CPU=$(CLK) -D$(TYPE)=1 -I. -Iusbdrv -o $(PROJ).elf
+$(PROJ).elf:
+	avr-gcc -o $(PROJ).elf -flto -O2 -mmcu=$(MCU) -D$(TYPE)=1 -Iusbdrv -I. -DF_CPU=$(CLK) $(SOURCES)
 
 # Create Intel hex format for programming
 $(PROJ).hex: $(PROJ).elf

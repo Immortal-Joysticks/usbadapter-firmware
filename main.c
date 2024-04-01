@@ -119,11 +119,11 @@ void readPort(struct hidReport *r)
 
 	if      (!(pins & (1<<PINA4)))	r->xpos = 0x00;				// left
 	else if (!(pins & (1<<PINA3)))	r->xpos = 0xff;			// right
-	else	r->xpos = 7f;
+	else	r->xpos = 0x7f;
 
 	if      (!(pins & (1<<PINA6)))	r->ypos = 0x00;				// up
 	else if (!(pins & (1<<PINA5)))	r->ypos = 0xff;			// down
-	else	r->ypos = 7f;
+	else	r->ypos = 0x7f;
 
 	r->buttons = 0;
 	if (!(pins & (1<<PINA7)))	r->buttons |= (1<<1);			// FIRE1
