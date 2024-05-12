@@ -5,10 +5,10 @@ MCU=attiny24
 TYPE=TYPE_ATTINYx4
 
 # Cable type for avrdude
-CABLE=arduino
+CABLE=tigard
 
 # Extra options for avrdude
-AVRDUDE_EXTRA=-P /dev/ttyACM0
+AVRDUDE_EXTRA=
 
 # Clock speed used (after divider), mostly for delay functions
 CLK=12000000UL

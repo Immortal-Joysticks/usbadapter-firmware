@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/cpufunc.h>
@@ -112,6 +113,10 @@ void initPort()
 #endif
 }
 
+static int loop_timer= 0;
+static int hold_start= 0;
+static bool b_pressed = false;
+
 void readPort(struct hidReport *r)
 {
 #if defined(TYPE_ATTINYx4)
@@ -129,7 +134,25 @@ void readPort(struct hidReport *r)
 	if (!(pins & (1<<PINA7)))	r->buttons |= (1<<1);			// FIRE1
 	if (!(pins & (1<<PINA2)))	r->buttons |= (1<<0);			// FIRE2
 
-	if (!(PINB & (1<<PINB2)))	r->buttons |= (1<<7);			// START
+	if (!(PINB & (1<<PINB2))) {
+		if (loop_timer >= 15000) {
+			r->buttons |= (1<<0);
+			b_pressed = true;
+			return;
+		}
+		loop_timer++;
+	} else if (loop_timer) {
+		if (b_pressed) {
+			b_pressed = false;
+			loop_timer= 0;
+		} else if (hold_start < 1500) {
+			r->buttons |= (1<<7);			// START
+			hold_start++;
+		} else {
+			loop_timer = 0;
+			hold_start = 0;
+		}
+	}
 
 #elif defined(TYPE_ATMEGA48)
 	uint8_t pb = PINB;
@@ -146,7 +169,7 @@ void readPort(struct hidReport *r)
 	r->buttons = 0;
 	if (!(pd & (1<<PIND6)))	r->buttons |= (1<<1);			// FIRE1
 	if (!(pb & (1<<PINB2)))	r->buttons |= (1<<0);			// FIRE2
-	if (!(pd & (1<<PIND4)))	r->buttons |= (1<<7);			// START
+	if (!(pd & (1<<PIND4))) r->buttons |= (1<<7);			// START
 #else
 	#error Unknown AVR type !
 #endif
